@@ -147,6 +147,11 @@ TASK
 Generate the final implementation instruction
 according to the Skill.
 
+If the ticket does not specify a language, framework,
+or approach, use the most common and idiomatic choice
+for this type of task. Default to Python for general
+coding tasks.
+
 Return only the final Markdown instruction.
 """
 

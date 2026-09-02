@@ -38,6 +38,10 @@ class AgentState(TypedDict, total=False):
 
     analysis: str
 
+    complexity: str
+
+    subtasks: list[Dict[str, Any]]
+
 
     # ========================================================
     # PROMPT
@@ -57,19 +61,6 @@ class AgentState(TypedDict, total=False):
     opencode_return_code: Optional[int]
 
 
-    # ========================================================
-    # GIT / GITHUB
-    # ========================================================
-
-    git_repo: str
-
-    git_branch: str
-
-    git_commit_message: str
-
-    git_push_result: str
-
-    git_return_code: Optional[int]
 
 
     # ========================================================

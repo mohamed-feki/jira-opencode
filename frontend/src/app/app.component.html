@@ -396,6 +396,26 @@
                 <span>{{ orchestratorTicket.updated }}</span>
               </div>
 
+              <div
+                class="split-breakdown"
+                *ngIf="orchestratorSubtasks.length"
+              >
+                <strong>
+                  Split into {{ orchestratorSubtasks.length }} subtasks
+                </strong>
+
+                <details
+                  *ngFor="let subtask of orchestratorSubtasks"
+                  class="subtask-item"
+                >
+                  <summary>
+                    {{ subtask.key }} - {{ subtask.title }}
+                  </summary>
+                  <span>{{ subtask.status || 'To Do' }}</span>
+                  <p>{{ subtask.description }}</p>
+                </details>
+              </div>
+
             </div>
 
           </div>

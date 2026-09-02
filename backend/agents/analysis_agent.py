@@ -34,6 +34,8 @@
 # ============================================================
 
 import os
+import json
+from typing import Literal
 
 from dotenv import load_dotenv
 
@@ -249,6 +251,80 @@ Fichier :
 # ============================================================
 # 6. ANALYSIS AGENT
 # ============================================================
+
+def classify_ticket(
+    ticket_content: str
+) -> Literal["SIMPLE", "COMPLEX"]:
+
+    response = llm.invoke(f"""
+Classify this Jira ticket as exactly SIMPLE or COMPLEX.
+Use COMPLEX when it requires multiple independent components or subsystems.
+Use SIMPLE for one narrow, well-scoped implementation task.
+Return only JSON: {{"classification": "SIMPLE"}}
+
+JIRA TICKET:
+{ticket_content}
+""")
+
+    try:
+        value = json.loads(str(response.content).strip()).get("classification")
+        if value in ("SIMPLE", "COMPLEX"):
+            print(f"📊 Ticket complexity: {value}")
+            return value
+    except (TypeError, ValueError, json.JSONDecodeError):
+        pass
+
+    fallback_terms = (
+        "application", "platform", "system", "end-to-end",
+        "architecture", "frontend", "backend", "database",
+    )
+    value = "COMPLEX" if sum(term in ticket_content.lower() for term in fallback_terms) >= 2 else "SIMPLE"
+    print(f"📊 Ticket complexity (fallback): {value}")
+    return value
+
+
+def decompose_ticket(
+    ticket_content: str
+) -> list[dict]:
+
+    print("🧩 Starting ticket decomposition with Ollama")
+    response = llm.invoke(f"""
+Decompose this Jira ticket into at least 3 independent implementation subtasks.
+Return only a JSON array. Each item must contain title, description, and labels.
+Descriptions must be actionable and independently implementable.
+
+JIRA TICKET:
+{ticket_content}
+""")
+
+    text = str(response.content).strip().removeprefix("```").removeprefix("json").removesuffix("```").strip()
+    print(
+        f"🧩 Ollama decomposition response: type={type(response.content).__name__}, "
+        f"length={len(text)}, preview={text[:300]!r}"
+    )
+    try:
+        drafts = json.loads(text)
+    except json.JSONDecodeError as exc:
+        print(
+            f"❌ JSON parse failed in decompose_ticket: line={exc.lineno}, "
+            f"column={exc.colno}, position={exc.pos}, message={exc.msg}"
+        )
+        raise RuntimeError(
+            "❌ Ollama returned invalid JSON while decomposing the ticket."
+        ) from exc
+    if not isinstance(drafts, list) or len(drafts) < 3:
+        raise RuntimeError("❌ La décomposition doit produire au moins 3 sous-tâches.")
+
+    result = [
+        {
+            "title": str(item["title"]).strip(),
+            "description": str(item["description"]).strip(),
+            "labels": item.get("labels", []),
+        }
+        for item in drafts
+    ]
+    print(f"🧩 Subtasks generated: {len(result)}")
+    return result
 
 def analysis_agent(
     state: AgentState

@@ -87,6 +87,10 @@ export class AppComponent {
 
   orchestratorTicket: any = null;
 
+  orchestratorSubtasks: any[] = [];
+
+  orchestratorComplexity: string = '';
+
   orchestratorAnalysis: string = '';
 
   orchestratorPrompt: string = '';
@@ -419,6 +423,10 @@ export class AppComponent {
 
     this.orchestratorTicket = null;
 
+    this.orchestratorSubtasks = [];
+
+    this.orchestratorComplexity = '';
+
     this.orchestratorAnalysis = '';
 
     this.orchestratorPrompt = '';
@@ -464,6 +472,12 @@ export class AppComponent {
 
         this.orchestratorTicket =
           response.ticket;
+
+        this.orchestratorSubtasks =
+          response.subtasks || [];
+
+        this.orchestratorComplexity =
+          response.complexity || '';
 
 
         /*

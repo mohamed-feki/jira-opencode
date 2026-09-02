@@ -1,3 +1,5 @@
+import traceback
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -645,7 +647,13 @@ async def run_agents(issue_key: str):
                 ),
 
             "prompt":
-                prompt
+                prompt,
+
+            "complexity":
+                result.get("complexity"),
+
+            "subtasks":
+                result.get("subtasks")
         }
 
     except Exception as e:
@@ -653,8 +661,13 @@ async def run_agents(issue_key: str):
         print(
             f"\n❌ Erreur Orchestrateur : {e}"
         )
+        traceback.print_exc()
+
+        status_code = 503 if str(e).startswith(
+            "MCP_WRITE_TOOLS_UNAVAILABLE:"
+        ) else 500
 
         raise HTTPException(
-            status_code=500,
+            status_code=status_code,
             detail=str(e)
         )
